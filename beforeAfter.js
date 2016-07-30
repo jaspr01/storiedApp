@@ -1,32 +1,35 @@
-storiedApp.directive('n2BeforeAfter', function($window) {
-    function link() {
-        var beforeAfter = $('.beforeAfter');
-        var firstImg = $('.beforeAfter-slider img').eq(0);
-        var draggable = $('#draggable');
-        var divider = $('.divider');
+var firstImg = $('.beforeAfter-slider img').eq(0);
+var draggable = $('.draggable');
+var divider = $('.divider');
 
+var firstImgWidth;
+var firstImgHeight;
+var firstImgTop;
+var firstImgLeft;
+
+storiedApp.directive('n2BeforeAfter', function() {
+    function link() {
         var url = firstImg.attr('src');
 
         var img = new Image();
         img.onload = function(){
-            var width = firstImg.width();
-            var height = firstImg.height();
-            var initialWidth = width - (width * 0.25);
-            console.log('full width: ' + width);
-            console.log('75% width: ' + initialWidth);
+            firstImgWidth = firstImg.width();
+            firstImgHeight = firstImg.height();
+            firstImgTop = firstImg.offset().top;
+            firstImgLeft = firstImg.offset().left;
 
-            firstImg.css('clip', 'rect(0px,' + initialWidth + 'px,600px,0px)');
-            divider.css('height', height + 'px');
-            divider.css('top', '-' + (height + 4) + 'px');
-            divider.css('left', initialWidth + 'px');
-            draggable.css('height', height + 'px');
+            var initialDividerXPosition = firstImgWidth * 0.75;
+            divider.css('left', initialDividerXPosition + 'px');
+            divider.css('height', firstImgHeight);
+            divider.css('top', '-' + (firstImgHeight + 4) + 'px');
+            draggable.css('height', firstImgHeight + 'px');
 
-            var position = firstImg.position();
-            console.log(position);
-            draggable.draggable({
+            divider.draggable({
                 axis: "x",
-                containment: [position.left + 8, position.top, position.left + width + 3, position.top + height]
+                containment: [firstImgLeft, firstImgTop, firstImgLeft + firstImgWidth, firstImgTop + firstImgHeight]
             });
+
+            firstImg.css('clip', 'rect(0px,' + initialDividerXPosition +'px,' + firstImgHeight + 'px,0px)');
         };
         img.src = url;
     }
@@ -36,16 +39,16 @@ storiedApp.directive('n2BeforeAfter', function($window) {
     }
 });
 
-storiedApp.directive('draggable', function($window) {
+storiedApp.directive('draggable', function() {
 
     function mouseDown() {
         $(window).bind('mousemove', divMove);
     }
 
     function divMove() {
-        var newWidth = $('#draggable').offset().left;
-        console.log(newWidth);
-        $('.beforeAfter-slider img').eq(0).css('clip', 'rect(0px,' + newWidth + 'px,1080px,0px)');
+        var dividerXPosition = divider.offset().left;
+        var newDividerXPosition = dividerXPosition - firstImgLeft;
+        firstImg.css('clip', 'rect(0px,' + newDividerXPosition +'px,' + firstImgHeight + 'px,0px)');
     }
 
     function link(scope, element, attr) {
